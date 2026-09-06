@@ -1,0 +1,13 @@
+# 数据与运行产物不入库（含版权文献与其衍生的重建数据）
+mineru_out/
+work/
+results/
+最终所纳入27个RCT/
+*.log
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+# 本机配置
+.env
+mineru_batch_state.json
+digitize_log.txt

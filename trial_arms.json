@@ -1,0 +1,196 @@
+{
+  "KEYNOTE-189": {
+    "population": "初治IV期非鳞NSCLC，EGFR/ALK野生型（ITT人群；亚组面板按PD-L1 TPS分层）",
+    "arms": [
+      {"name": "Pembrolizumab + chemotherapy (200mg q3w + 培美曲塞/铂类)", "role": "experimental", "keywords": ["pembrolizumab"]},
+      {"name": "Placebo + chemotherapy (培美曲塞/铂类)", "role": "control", "keywords": ["placebo"]}
+    ]
+  },
+  "KEYNOTE-407": {
+    "population": "初治IV期鳞状NSCLC（ITT人群；亚组面板按PD-L1 TPS分层）",
+    "arms": [
+      {"name": "Pembrolizumab + carboplatin + paclitaxel/nab-paclitaxel", "role": "experimental", "keywords": ["pembrolizumab"]},
+      {"name": "Placebo + carboplatin + paclitaxel/nab-paclitaxel", "role": "control", "keywords": ["placebo"]}
+    ]
+  },
+  "KEYNOTE-021G": {
+    "population": "初治非鳞NSCLC（EGFR/ALK野生型），KEYNOTE-021队列G",
+    "arms": [
+      {"name": "Pembrolizumab + carboplatin + pemetrexed", "role": "experimental", "keywords": ["pembrolizumab"]},
+      {"name": "Carboplatin + pemetrexed", "role": "control", "keywords": ["chemo"]}
+    ]
+  },
+  "MYSTIC": {
+    "population": "IV期NSCLC，PD-L1 TPS≥25%（ armas按图内标注）；含bTMB亚组面板",
+    "arms": [
+      {"name": "Durvalumab monotherapy 20mg/kg", "role": "experimental", "keywords": ["durvalumab"], "not": ["tremelimumab"]},
+      {"name": "Durvalumab + tremelimumab (D+T)", "role": "experimental", "keywords": ["durvalumab", "tremelimumab"]},
+      {"name": "SoC chemotherapy (铂类双药)", "role": "control", "keywords": ["chemotherap"]}
+    ]
+  },
+  "NEPTUNE": {
+    "population": "IV期NSCLC，PD-L1 TPS≥25%",
+    "arms": [
+      {"name": "Durvalumab + tremelimumab (D+T)", "role": "experimental", "keywords": ["tremelimumab", "durvalumab"]},
+      {"name": "SoC chemotherapy (铂类双药)", "role": "control", "keywords": ["chemo"]}
+    ]
+  },
+  "CheckMate 227 Part 1": {
+    "population": "IV期NSCLC，PD-L1 TPS≥1%（Part 1）；含PD-L1表达亚组面板",
+    "arms": [
+      {"name": "Nivolumab 3mg/kg + Ipilimumab 1mg/kg (N+I)", "role": "experimental", "keywords": ["nivolumab"], "not": ["chemo"]},
+      {"name": "Nivolumab 360mg + chemotherapy (N+C)", "role": "experimental", "keywords": ["nivolumab"]},
+      {"name": "Chemotherapy (铂类双药)", "role": "control", "keywords": ["chemo"]}
+    ]
+  },
+  "CheckMate 227 Part 2": {
+    "population": "IV期NSCLC，PD-L1 TPS<1%（Part 2）",
+    "arms": [
+      {"name": "Nivolumab + Ipilimumab (N+I)", "role": "experimental", "keywords": ["nivolumab"]},
+      {"name": "Nivolumab + chemotherapy (N+C)", "role": "experimental", "keywords": ["nivolumab"]},
+      {"name": "Chemotherapy (铂类双药)", "role": "control", "keywords": ["chemo"]}
+    ]
+  },
+  "CheckMate-9LA": {
+    "population": "IV期NSCLC，无EGFR/ALK变异",
+    "arms": [
+      {"name": "Nivolumab + Ipilimumab + 2周期化疗 (N+I+Chemo)", "role": "experimental", "keywords": ["nivo"]},
+      {"name": "Nivolumab + Ipilimumab (N+I)", "role": "experimental", "keywords": ["nivolumab"]},
+      {"name": "Chemotherapy alone (铂类双药)", "role": "control", "keywords": ["chemo"]}
+    ]
+  },
+  "POSEIDON": {
+    "population": "IV期非鳞/鳞NSCLC（无驱动基因）",
+    "arms": [
+      {"name": "Tremelimumab 75mg + Durvalumab + Chemotherapy (T+D+CT)", "role": "experimental", "keywords": ["tremelimumab"]},
+      {"name": "Durvalumab + Chemotherapy (D+CT)", "role": "experimental", "keywords": ["durvalumab"], "not": ["tremelimumab"]},
+      {"name": "Chemotherapy alone (CT, 铂类双药)", "role": "control", "keywords": ["chemo", "ct"]}
+    ]
+  },
+  "IMpower-130": {
+    "population": "初治IV期非鳞NSCLC（ITT-WT：EGFR/ALK野生型）",
+    "arms": [
+      {"name": "Atezolizumab + carboplatin + nab-paclitaxel (A+CnP)", "role": "experimental", "keywords": ["atezolizumab"]},
+      {"name": "Carboplatin + nab-paclitaxel (CnP)", "role": "control", "keywords": ["chemo"]}
+    ]
+  },
+  "IMpower-131": {
+    "population": "初治IV期鳞状NSCLC",
+    "arms": [
+      {"name": "Atezolizumab + carboplatin + nab-paclitaxel (A+CnP)", "role": "experimental", "keywords": ["atezolizumab", "atezo"]},
+      {"name": "Carboplatin + nab-paclitaxel (CnP)", "role": "control", "keywords": ["chemo", "cnp"]}
+    ]
+  },
+  "IMpower132": {
+    "population": "初治IV期非鳞NSCLC（ITT-WT）",
+    "arms": [
+      {"name": "Atezolizumab + carboplatin/cisplatin + pemetrexed (APP)", "role": "experimental", "keywords": ["app", "atezo"]},
+      {"name": "Carboplatin/cisplatin + pemetrexed (PP)", "role": "control", "keywords": ["pp", "chemo"]}
+    ]
+  },
+  "GEMSTONE-302": {
+    "population": "初治IV期NSCLC（鳞状与非鳞状）",
+    "arms": [
+      {"name": "Sugemalimab 1200mg + chemotherapy", "role": "experimental", "keywords": ["sugemalimab"]},
+      {"name": "Placebo + chemotherapy", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "CameL": {
+    "population": "初治IIIB–IV期非鳞NSCLC，EGFR/ALK野生型",
+    "arms": [
+      {"name": "Camrelizumab 200mg + pemetrexed/carboplatin", "role": "experimental", "keywords": ["camrelizumab", "camre"]},
+      {"name": "Placebo + pemetrexed/carboplatin", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "CameL-sq": {
+    "population": "初治IIIB–IV期鳞状NSCLC，EGFR/ALK野生型",
+    "arms": [
+      {"name": "Camrelizumab 200mg + paclitaxel/carboplatin", "role": "experimental", "keywords": ["camrelizumab", "camre"]},
+      {"name": "Placebo + paclitaxel/carboplatin", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "RATIONALE-304": {
+    "population": "初治IIIB–IV期非鳞NSCLC，PD-L1 TPS≥1%（亚组面板按TPS分层）",
+    "arms": [
+      {"name": "Tislelizumab 200mg + platinum-doublet chemotherapy", "role": "experimental", "keywords": ["tislelizumab"]},
+      {"name": "Placebo + platinum-doublet chemotherapy", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "RATIONALE-307": {
+    "population": "初治IIIB–IV期鳞状NSCLC，PD-L1 TPS≥1%（亚组面板按TPS分层）",
+    "arms": [
+      {"name": "Tislelizumab 200mg + carboplatin/paclitaxel或nab-paclitaxel", "role": "experimental", "keywords": ["tislelizumab"]},
+      {"name": "Placebo + carboplatin/paclitaxel或nab-paclitaxel", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "ORIENT-11": {
+    "population": "初治IIIB–IV期非鳞NSCLC，EGFR/ALK野生型",
+    "arms": [
+      {"name": "Sintilimab 200mg + pemetrexed/carboplatin", "role": "experimental", "keywords": ["sintilimab"]},
+      {"name": "Placebo + pemetrexed/carboplatin", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "ORIENT-12": {
+    "population": "初治IIIB–IV期鳞状NSCLC",
+    "arms": [
+      {"name": "Sintilimab 200mg + gemcitabine/carboplatin", "role": "experimental", "keywords": ["sintilimab"]},
+      {"name": "Placebo + gemcitabine/carboplatin", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "CHOICE-01": {
+    "population": "初治IIIB–IV期NSCLC（鳞/非鳞；PD-L1 CPS≥10%与<10%亚组）",
+    "arms": [
+      {"name": "Toripalimab 240mg + chemotherapy", "role": "experimental", "keywords": ["toripalimab"]},
+      {"name": "Placebo + chemotherapy", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "AK105-302": {
+    "population": "初治IV期鳞状NSCLC，PD-L1 TPS≥1%（ITT）",
+    "arms": [
+      {"name": "Penpulimab 200mg + paclitaxel/carboplatin", "role": "experimental", "keywords": ["penpulimab"]},
+      {"name": "Placebo + paclitaxel/carboplatin", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "ASTRUM-002": {
+    "population": "初治IV期鳞状NSCLC，PD-L1 CPS≥1%（含ITT与PD-L1亚组面板）",
+    "arms": [
+      {"name": "Serplulimab 300mg + chemotherapy", "role": "experimental", "keywords": ["serplulimab"]},
+      {"name": "Placebo + chemotherapy", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "EMPOWER-Lung 3": {
+    "population": "IIIB/IV期非鳞NSCLC，PD-L1 TPS≥50%",
+    "arms": [
+      {"name": "Cemiplimab 350mg + chemotherapy (铂类双药)", "role": "experimental", "keywords": ["cemiplimab"]},
+      {"name": "Placebo + chemotherapy", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "POD1UM-304": {
+    "population": "IV期鳞状NSCLC，PD-L1 CPS≥10%（初治）",
+    "arms": [
+      {"name": "Retifanlimab 500mg + chemotherapy", "role": "experimental", "keywords": ["retifanlimab"]},
+      {"name": "Placebo + chemotherapy", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "DOMAJOR": {
+    "population": "初治IV期鳞状NSCLC，PD-L1 CPS≥10%",
+    "arms": [
+      {"name": "Prolgolimab + chemotherapy", "role": "experimental", "keywords": ["prolgolimab"]},
+      {"name": "Placebo + chemotherapy", "role": "control", "keywords": ["placebo", "chemo"]}
+    ]
+  },
+  "CCTG BR34": {
+    "population": "IV期NSCLC，EGFR/ALK野生型，PD-L1任意表达",
+    "arms": [
+      {"name": "Durvalumab + tremelimumab ± Chemotherapy (DT±CT)", "role": "experimental", "keywords": ["dt"]},
+      {"name": "Durvalumab ± Chemotherapy 对照定义见图注", "role": "control", "keywords": ["chemo"]}
+    ]
+  },
+  "JCOG2007": {
+    "population": "IV期非鳞NSCLC，PD-L1 TPS≥50%（初治，日本人群）",
+    "arms": [
+      {"name": "Pembrolizumab 200mg monotherapy", "role": "experimental", "keywords": ["pembrolizumab"]},
+      {"name": "Nivolumab + Ipilimumab 或 Chemotherapy（按图注）", "role": "control", "keywords": ["nivolumab", "chemo"]}
+    ]
+  }
+}

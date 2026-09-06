@@ -1,0 +1,12 @@
+# Python 依赖（Python ≥3.10）
+mineru[pipeline]>=2.0          # PDF 解析（首次运行需下载模型）
+pymupdf>=1.24
+opencv-python>=4.8
+numpy>=1.26
+pandas>=2.0
+matplotlib>=3.8
+lifelines>=0.28                # 重建IPD的KM/Cox生存分析
+rapidocr-onnxruntime>=1.3      # 刻度/风险表 OCR
+
+# R 侧（R ≥4.2）
+# install.packages(c("IPDfromKM", "survival", "jsonlite"))
