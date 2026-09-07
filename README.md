@@ -146,4 +146,12 @@ $IPDR_ROOT/
 
 ## License
 
-MIT
+GPL-3.0（见 LICENSE）。本流水线依赖并参考了 IPDfromKM（R）与 MinerU 等开源组件。
+
+## 开发成本（AI-assisted engineering）
+
+本流水线的全部代码（25个脚本、约6000行）由 GLM-5.3-Flash 模型在 ZCode harness 中
+以人机协作方式生成与调试（人类负责需求、验收与肉眼质检），历时约24个自然小时：
+1,310 次模型请求、28 个用户轮次；累计消耗 446,549,976 tokens
+（输入 445.4M，其中 434.4M 由缓存命中服务；输出 1.15M），模型处理时间合计 12.7 小时。
+执行于 GLM Coding Plan 订阅内，无按 token 计费的边际成本。
