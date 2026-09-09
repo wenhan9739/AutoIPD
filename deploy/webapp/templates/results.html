@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>AtuoIPDR — 结果</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#f0f4f8; padding:40px; }
+.container { max-width:900px; margin:0 auto; }
+h1 { color:#1a3a5c; font-size:1.4em; margin-bottom:8px; }
+.file { background:#4a7ebb; color:white; font-size:0.85em; padding:4px 12px; border-radius:4px; margin-bottom:16px; }
+.sec { background:white; border-radius:10px; padding:32px; margin-bottom:24px;
+       box-shadow:0 2px 12px rgba(0,0,0,.08); }
+.sec h2 { color:#1a3a5c; font-size:1.1em; margin-bottom:16px; border-bottom:2px solid #e0e8f0; padding-bottom:8px; }
+.dl { display:flex; align-items:center; padding:10px 16px; margin:6px 0;
+      background:#f6f8fb; border-radius:6px; transition:.15s; }
+.dl:hover { background:#e8f0fe; }
+.dl .icon { margin-right:12px; font-size:1.2em; }
+.dl a { color:#2166ac; text-decoration:none; font-weight:500; flex:1; }
+.dl .tag { font-size:0.75em; color:#888; background:#eee; padding:2px 8px; border-radius:3px; }
+img { max-width:100%; border:1px solid #e0e0e0; border-radius:4px; margin:4px 0; }
+.back { display:inline-block; margin-bottom:20px; color:#2166ac; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back" href="/">← 返回上传</a>
+  <h1>✓ IPD 重建完成</h1>
+  <div class="file">{{ info.filename }}</div>
+
+  <div class="sec">
+    <h2>📥 IPD 下载</h2>
+    {% for f in info.results if f.type == 'ipd' %}
+    <div class="dl"><span class="icon">📊</span>
+      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
+      <span class="tag">IPD CSV</span></div>
+    {% endfor %}
+    {% for f in info.results if f.type == 'master' %}
+    <div class="dl"><span class="icon">📋</span>
+      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
+      <span class="tag">总表</span></div>
+    {% endfor %}
+  </div>
+
+  <div class="sec">
+    <h2>📈 重建 vs 原曲线对比图</h2>
+    {% for f in info.results if f.type == 'plot' %}
+    <div class="dl"><span class="icon">🖼</span>
+      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
+      <span class="tag">对比图</span></div>
+    {% endfor %}
+  </div>
+
+  <div class="sec">
+    <h2>🖼 数字化核验图</h2>
+    {% for f in info.results if f.type == 'overlay' %}
+    <div class="dl"><span class="icon">🔍</span>
+      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
+      <span class="tag">核验图</span></div>
+    {% endfor %}
+  </div>
+</div>
+</body>
+</html>

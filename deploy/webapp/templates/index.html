@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AtuoIPDR — PDF → IPD</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:#f0f4f8; min-height:100vh;
+       display:flex; align-items:center; justify-content:center; }
+.card { background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.1);
+        padding:48px; max-width:520px; width:90%; }
+h1 { color:#1a3a5c; font-size:1.5em; margin-bottom:8px; }
+.sub { color:#666; font-size:0.9em; margin-bottom:32px; }
+.drop { border:2px dashed #aab; border-radius:8px; padding:40px; text-align:center;
+        cursor:pointer; transition:.2s; }
+.drop:hover, .drop.over { border-color:#4a7ebb; background:#f0f6ff; }
+.drop input { display:none; }
+.drop .icon { font-size:3em; margin-bottom:12px; }
+.drop .txt { color:#555; }
+.btn { display:block; width:100%; padding:14px; margin-top:20px; border:none; border-radius:8px;
+       background:#2166ac; color:white; font-size:1.1em; cursor:pointer; }
+.btn:disabled { background:#aaa; }
+.status { margin-top:20px; padding:12px; border-radius:6px; display:none; }
+.status.info { background:#e8f0fe; color:#1a3a5c; }
+.status.ok { background:#e8f8f0; color:#1a7a4a; }
+.status.err { background:#fee; color:#a00; }
+.spinner { display:inline-block; width:16px; height:16px; border:2px solid #999;
+           border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🧬 AtuoIPDR</h1>
+  <p class="sub">上传 RCT 文献 PDF，自动重建 KM 曲线 IPD 并生成对比图</p>
+  <form id="form" method="post" action="/upload" enctype="multipart/form-data">
+    <label class="drop" id="drop">
+      <input type="file" name="pdf" id="pdf" accept=".pdf">
+      <div class="icon">📄</div>
+      <div class="txt">点击或拖拽上传 PDF</div>
+    </label>
+    <button class="btn" id="btn" type="submit" disabled>开始重建</button>
+  </form>
+  <div class="status info" id="status"></div>
+</div>
+<script>
+const drop = document.getElementById('drop');
+const input = document.getElementById('pdf');
+const btn = document.getElementById('btn');
+const status = document.getElementById('status');
+
+drop.onclick = () => input.click();
+input.onchange = () => {
+  if (input.files.length) {
+    drop.querySelector('.txt').textContent = input.files[0].name;
+    btn.disabled = false;
+  }
+};
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); input.files = e.dataTransfer.files; input.onchange(); };
+
+document.getElementById('form').onsubmit = async e => {
+  e.preventDefault();
+  btn.disabled = true;
+  status.className = 'status info';
+  status.innerHTML = '<span class="spinner"></span> 上传中…';
+  const fd = new FormData();
+  fd.append('pdf', input.files[0]);
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { status.className='status err'; status.textContent=data.error; btn.disabled=false; return; }
+    status.innerHTML = '<span class="spinner"></span> 解析中（约1-5分钟）…';
+    poll(data.job_id);
+  } catch(err) {
+    status.className='status err'; status.textContent='上传失败: '+err; btn.disabled=false;
+  }
+};
+
+function poll(jobId) {
+  const iv = setInterval(async () => {
+    const res = await fetch('/status/'+jobId);
+    const d = await res.json();
+    if (d.status === 'completed') {
+      clearInterval(iv);
+      status.className='status ok';
+      status.innerHTML='✓ 完成！跳转到结果页…';
+      setTimeout(()=>location.href='/results/'+jobId, 800);
+    } else if (d.status === 'failed') {
+      clearInterval(iv);
+      status.className='status err';
+      status.textContent='失败: '+(d.error||'未知错误');
+      btn.disabled=false;
+    } else {
+      status.innerHTML = '<span class="spinner"></span> ' +
+        {parsing:'MinerU 解析中…', digitizing:'曲线数字化+IPD重建中…', queued:'排队中…'}[d.stage] || d.stage;
+    }
+  }, 3000);
+}
+</script>
+</body>
+</html>
