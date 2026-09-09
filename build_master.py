@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-build_master — 汇总 人群/干预标注 + IPD重建结果 → results/curves_master.csv
-每臂一行：试验、人群、面板、端点、臂、干预(标准名)、角色、重建统计、来源文件。
-"""
+"""Master table builder: merge annotations + reconstruction into curves_master.csv."""
+
 import os
 import sys
 import json

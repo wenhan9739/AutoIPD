@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-compare_ipd — Python(Guyot移植) vs R(IPDfromKM) vs 原始数字化曲线 三方对比。
+"""Three-way comparison: Python vs R vs original digitized curves."""
 
-  1. Python IPD 与 R IPD 逐行一致性（人数、事件数、每行 time/status 差异）
-  2. 重建 IPD 的 KM 曲线 vs 原数字化曲线：RMSE、中位差、里程碑生存率差
-  3. 重建风险数 vs 报告风险数
-输出：results/ipd/compare_report.csv + 控制台汇总
-"""
 import os
 import glob
 import numpy as np

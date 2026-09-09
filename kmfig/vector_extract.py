@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-kmfig.vector_extract — 从 PDF 矢量路径中精确提取 KM 曲线。
+"""Vector curve extraction: color-grouped stroke paths with junction-aware chaining."""
 
-原理：KM 曲线是“彩色描边”的折线路径，删失标记是同色的短小线段，
-置信区间是虚线（dashes）。把路径按颜色分组 → 链式重组连续折线 →
-最长链即曲线，其余短链是删失标记。全部在像素坐标系下进行。
-"""
 import numpy as np
 
 

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-validate — 从 MinerU markdown 中提取文中报告的中位生存时间，用于交叉校验数字化结果。
-"""
+"""Published-median extraction and matching for cross-validation."""
+
 import os
 import re
 import glob

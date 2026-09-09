@@ -1,14 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-select_figures — 扫描 MinerU 输出，生成 OS/PFS 曲线候选页清单（manifest）。
+"""Candidate-page selection: MinerU chart detection + keyword/vector-density matching."""
 
-候选判定（双层）：
-  1) 图文证据：content_list 里 image 项的 caption/footnote 或同页文本
-     命中 OS/PFS/Kaplan 等关键词；
-  2) 页面文本证据：整页文本含 Kaplan-Meier/生存曲线关键词。
-docx/pptx（office 输出）没有页坐标系，其裁出的图片若 caption 命中则整图作为候选。
-输出 work/manifest.json，每条候选含：trial、来源文件、定位方式（page/图片路径）、证据。
-"""
 import os
 import re
 import json

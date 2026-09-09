@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-annotate_panels — 为每个面板/臂标注 人群(population)、干预(intervention)、对照标记，
-并给缺风险表的面板补 OCR 风险表 / totalpts 兜底。
+"""Population/intervention annotation + OCR risk-table backfill."""
 
-输出：
-  results/panels_annotated.csv   每臂一行（含人群/干预/角色/风险来源）
-  results/risk_ocr/*.json        OCR 得到的风险表（times/counts），供建模读取
-"""
 import os
 import re
 import sys
@@ -156,8 +150,11 @@ def ocr_risk_table(page, panel, xcal, max_rows=6):
         row.sort(key=lambda c: c["x0"])
         if len(row) < 3:
             continue
+        vals = [c["val"] for c in row]
+        if vals[-1] > vals[0]:   # 递增行 = x轴刻度标签，丢弃
+            continue
         times = [round(xcal.value((c["x0"] + c["x1"]) / 2), 2) for c in row]
-        counts = [c["val"] for c in row]
+        counts = vals
         # 颜色：取行内数字像素的主色（饱和者）
         color = None
         cols = []

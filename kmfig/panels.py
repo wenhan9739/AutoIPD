@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-kmfig.panels — 在渲染后的页面/图像光栅上检测 KM 图的坐标轴系统（面板）。
+"""Panel detection: L-shaped axis pairing on dark low-saturation line segments."""
 
-思路：坐标轴是“深色、低饱和”的长直线；曲线是彩色的、网格线是浅色的，
-先用 HSV 把深灰/黑像素分离出来，再用形态学开运算提取长水平线/长竖线，
-最后把“竖轴底端 ≈ 横轴左端”的 L 形配对成一个面板的绘图区。
-所有坐标均为该光栅图像的像素坐标。
-"""
 import numpy as np
 import cv2
 

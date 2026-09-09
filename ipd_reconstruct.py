@@ -1,14 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ipd_reconstruct — 批量 IPD 重建 + 生存分析 + 与原曲线三方比对。
+"""Batch IPD reconstruction driver (Python Guyot) + survival analysis + comparison."""
 
-输入：results/ 下各面板 JSON（含 arms.steps 坐标、at_risk 风险表）
-输出（results/ipd/）：
-  <面板>__<臂>.ipd.csv        重建的伪IPD（time, event）
-  plots/<面板>.png            原数字化曲线(实线) vs 重建KM曲线(虚线) 叠加图
-  key_values.csv              每臂关键值：中位、里程碑生存率、风险数误差、RMSE、Cox HR
-用法：py -3.12 ipd_reconstruct.py [--limit N]
-"""
 import os
 import sys
 import json
