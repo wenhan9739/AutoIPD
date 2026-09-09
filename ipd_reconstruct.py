@@ -135,6 +135,9 @@ def main(limit=None):
                 continue
             trisk = [float(t) for t in row["times"]]
             nrisk = [float(c) for c in row["counts"]]
+            # 风险表首列必在 t=0；OCR/标定抖动产生的小正数归零
+            if trisk and 0 < trisk[0] <= 0.03 * max(trisk[-1], 1.0):
+                trisk[0] = 0.0
             if len(trisk) < 2 or trisk[0] > 0:
                 continue
             r_export.append(dict(arm=a["arm_id"], key=f"{base}__{a['arm_id']}",
@@ -195,7 +198,9 @@ def main(limit=None):
                 **{f"S{int(m)}_orig": round(mile[m][1], 4) for m in MILESTONES},
             ))
             ok_arms[ai] = (a, row, est, km_t, km_s)
-            cox_arms.append((tcol, ecol))
+            # 存为 (time,event) 对列表；直接存 (tcol,ecol) 元组会把两支列表
+            # 当成两条观测传给 Cox（n=2 的假拟合）
+            cox_arms.append(list(zip(tcol, ecol)))
             ax.step(orig_t, orig_s, where="post", lw=2.2, label=f"{a['arm_id']} original")
             ax.step(km_t, km_s, where="post", lw=1.0, ls="--", label=f"{a['arm_id']} reconstructed")
         # Cox（前两臂）

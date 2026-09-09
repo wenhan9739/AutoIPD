@@ -4,6 +4,7 @@ AtuoIPDR Web Service — Upload PDF, get reconstructed IPD + comparison plots.
 Flask app with background processing via threading.
 """
 import os
+import sys
 import uuid
 import shutil
 import threading
@@ -12,6 +13,11 @@ from datetime import datetime
 
 from flask import (Flask, request, jsonify, render_template,
                    send_from_directory, redirect, url_for)
+
+# 保证 mineru_client / pipeline_runner 可导入（无论 gunicorn 从哪个目录启动）
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100MB
@@ -34,10 +40,6 @@ def run_pipeline_thread(job_id, pdf_path, result_dir):
         JOBS[job_id]["status"] = "running"
         JOBS[job_id]["stage"] = "parsing"
 
-        sys_path = os.path.dirname(os.path.abspath(__file__))
-        if sys_path not in __import__("sys").path:
-            __import__("sys").path.insert(0, sys_path)
-
         from mineru_client import parse_pdf
         from pipeline_runner import run_full_pipeline
 
@@ -46,7 +48,7 @@ def run_pipeline_thread(job_id, pdf_path, result_dir):
         JOBS[job_id]["stage"] = "digitizing"
 
         # Step 2: 数字化 + IPD 重建
-        results = run_full_pipeline(parsed_dir, result_dir)
+        results = run_full_pipeline(parsed_dir, result_dir, pdf_path)
         JOBS[job_id]["stage"] = "done"
         JOBS[job_id]["status"] = "completed"
         JOBS[job_id]["results"] = results
@@ -64,7 +66,7 @@ def run_pipeline_thread(job_id, pdf_path, result_dir):
 
 @app.route("/health")
 def health():
-    return jsonify := __import__("flask").jsonify({"status": "ok"})
+    return jsonify({"status": "ok"})
 
 
 @app.route("/")
@@ -113,11 +115,18 @@ def results(job_id):
     return render_template("results.html", job_id=job_id, info=info)
 
 
-@app.route("/download/<job_id>/<filename>")
-def download(job_id, filename):
+@app.route("/download/<job_id>/<path:relpath>")
+def download(job_id, relpath):
+    """relpath 为产物相对 result_dir 的路径（来自 downloads 列表的 rel 字段）。"""
     result_dir = os.path.join(app.config["RESULT_FOLDER"], job_id)
-    safe = os.path.basename(filename)
-    return send_from_directory(result_dir, safe)
+    safe = os.path.normpath(relpath).lstrip("\\/").replace("\\", "/")
+    if safe.startswith(".."):
+        return jsonify({"error": "invalid path"}), 400
+    full = os.path.join(result_dir, safe)
+    if not os.path.isfile(full):
+        return jsonify({"error": "file not found"}), 404
+    return send_from_directory(os.path.dirname(full), os.path.basename(safe),
+                               as_attachment=True)
 
 
 # ---------- 每试验汇总 API ----------

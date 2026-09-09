@@ -36,10 +36,9 @@ def parse_pdf(pdf_path, output_dir, api_key=None):
     upload_url = data["data"]["file_urls"][0]
     batch_id = data["data"]["batch_id"]
 
-    # Step 2: 上传 PDF
+    # Step 2: 上传 PDF（注意：不要带额外 header，否则破坏预签名）
     with open(pdf_path, "rb") as f:
-        put = requests.put(upload_url, data=f.read(),
-                           headers={"Content-Type": "application/octet-stream"}, timeout=120)
+        put = requests.put(upload_url, data=f, timeout=300)
     put.raise_for_status()
 
     # Step 3: 等待解析完成
@@ -58,11 +57,11 @@ def parse_pdf(pdf_path, output_dir, api_key=None):
     # Step 4: 下载解析结果
     full_zip_url = results[0].get("full_zip_url")
     if full_zip_url:
-        import zipfile, io
+        import io
+        import zipfile
         zr = requests.get(full_zip_url, timeout=120)
         zr.raise_for_status()
-        import zipfile as zf
-        with zf.ZipFile(io.BytesIO(zr.content)) as z:
+        with zipfile.ZipFile(io.BytesIO(zr.content)) as z:
             z.extractall(output_dir)
 
     # 找到 content_list.json 所在子目录

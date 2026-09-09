@@ -32,22 +32,28 @@ img { max-width:100%; border:1px solid #e0e0e0; border-radius:4px; margin:4px 0;
     <h2>📥 IPD 下载</h2>
     {% for f in info.results if f.type == 'ipd' %}
     <div class="dl"><span class="icon">📊</span>
-      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
+      <a href="/download/{{ job_id }}/{{ f.rel }}">{{ f.name }}</a>
       <span class="tag">IPD CSV</span></div>
     {% endfor %}
-    {% for f in info.results if f.type == 'master' %}
+    {% for f in info.results if f.type == 'report' %}
     <div class="dl"><span class="icon">📋</span>
-      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
-      <span class="tag">总表</span></div>
+      <a href="/download/{{ job_id }}/{{ f.rel }}">{{ f.name }}</a>
+      <span class="tag">汇总/质检</span></div>
     {% endfor %}
+    {% if not (info.results | selectattr('type','equalto','ipd') | list) %}
+    <p style="color:#888;font-size:.9em;">本次未重建出 IPD（可能缺少风险表或曲线臂不足 2 条）</p>
+    {% endif %}
   </div>
 
   <div class="sec">
     <h2>📈 重建 vs 原曲线对比图</h2>
     {% for f in info.results if f.type == 'plot' %}
     <div class="dl"><span class="icon">🖼</span>
-      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
+      <a href="/download/{{ job_id }}/{{ f.rel }}">{{ f.name }}</a>
       <span class="tag">对比图</span></div>
+    {% endfor %}
+    {% for f in info.results if f.type == 'plot' %}
+    <img src="/download/{{ job_id }}/{{ f.rel }}" alt="{{ f.name }}">
     {% endfor %}
   </div>
 
@@ -55,7 +61,7 @@ img { max-width:100%; border:1px solid #e0e0e0; border-radius:4px; margin:4px 0;
     <h2>🖼 数字化核验图</h2>
     {% for f in info.results if f.type == 'overlay' %}
     <div class="dl"><span class="icon">🔍</span>
-      <a href="/download/{{ job_id }}/{{ f.name }}">{{ f.name }}</a>
+      <a href="/download/{{ job_id }}/{{ f.rel }}">{{ f.name }}</a>
       <span class="tag">核验图</span></div>
     {% endfor %}
   </div>
