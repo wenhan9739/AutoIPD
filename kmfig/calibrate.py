@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-kmfig.calibrate — 从刻度标签建立 像素↔数值 的线性映射。
+"""Axis calibration: vector tick labels / geometric tick-marks + OCR / RANSAC fitting."""
 
-两条路径：
-  vector: PDF 文字层直接取刻度数字的位置（精确）；
-  ocr   : 位图/扫描图上用 RapidOCR 识别刻度数字。
-拟合：最小二乘 + 迭代剔除离群点；校验：刻度等距性、拟合残差。
-"""
 import re
 import numpy as np
 import cv2
@@ -410,3 +404,70 @@ def calibrate_ocr(page, panel):
     x_cal = AxisCalib(fx, sorted(t["val"] for t in xt), "months", "ocr") if fx else None
     y_cal = AxisCalib(fy, sorted(t["val"] for t in yt), yunit, "ocr") if fy else None
     return x_cal, y_cal, dict(x_ticks=xt, y_ticks=yt)
+
+def ocr_risk_rows(page, panel, xcal, max_rows=6):
+    """
+    OCR risk-table rows below the x-axis (multi-arm robust):
+      1) OCR 条带内所有整数单元格；
+      2) 每个单元格采样文字主色 → 色相族（彩色=各臂，灰黑=无色）；
+      3) 按 (色相族, y 行聚类) 分组，每组为一条臂的风险行；
+      4) 丢弃随时间递增的行（x轴刻度标签混入）。
+    返回 [dict(times, counts, y)]，times 已由 xcal 换算为数据单位。
+    """
+    import cv2 as _cv2
+    img = page.img
+    H, W = img.shape[:2]
+    ax_y, ax_x = panel["axis_x_y"], panel["axis_y_x"]
+    pw = panel["x1"] - panel["x0"]
+    box = (ax_x - 0.05 * pw, ax_y + 4, ax_x + 1.10 * pw, ax_y + 0.18 * H)
+    res = _ocr_region(img, box, upscale=2.0)
+    cells = []
+    for r in res:
+        t = r["text"].strip()
+        m = re.match(r"^(\d{1,4})[(（]?", t)
+        if not m:
+            continue
+        xi0, xi1 = int(r["x0"]), int(r["x1"])
+        yi0, yi1 = int(r["y0"]), int(r["y1"])
+        patch = img[max(0, yi0):yi1 + 1, max(0, xi0):xi1 + 1]
+        family, huef = -1, None
+        if patch.size:
+            hsv = _cv2.cvtColor(patch, _cv2.COLOR_BGR2HSV)
+            sat = hsv[..., 1].astype(float) / 255
+            sel = sat >= 0.40
+            if sel.sum() >= 3:
+                huef = float(np.median(hsv[..., 0][sel]))
+                family = int(huef // 20)
+        cells.append(dict(x0=r["x0"], x1=r["x1"], cy=(r["y0"] + r["y1"]) / 2,
+                          val=int(m.group(1)), family=family, hue=huef))
+    if len(cells) < 4:
+        return []
+
+    # 分组：(色相族, y行) —— 同族内按 y 聚类
+    ytol = max(6.0, 0.015 * H)
+    groups = []
+    for c in cells:
+        placed = False
+        for g in groups:
+            if g["family"] == c["family"] and abs(c["cy"] - g["cy"]) <= ytol:
+                g["cells"].append(c)
+                g["cy"] = (g["cy"] * (len(g["cells"]) - 1) + c["cy"]) / len(g["cells"])
+                placed = True
+                break
+        if not placed:
+            groups.append(dict(family=c["family"], cy=c["cy"], cells=[c]))
+
+    out = []
+    for g in groups:
+        cells_g = sorted(g["cells"], key=lambda c: c["x0"])
+        if len(cells_g) < 3:
+            continue
+        vals = [c["val"] for c in cells_g]
+        if vals[-1] > vals[0]:   # 递增行 = 刻度标签
+            continue
+        times = [round(xcal.value((c["x0"] + c["x1"]) / 2), 2) for c in cells_g]
+        out.append(dict(times=times, counts=vals,
+                        y=float(np.mean([c["cy"] for c in cells_g]))))
+        if len(out) >= max_rows:
+            break
+    return out

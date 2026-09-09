@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-kmfig.guyot — Guyot 2012 IPD 重建算法的 Python 实现。
+"""Guyot 2012 IPD reconstruction: line-faithful Python port of IPDfromKM 0.1.10."""
 
-忠实移植自 IPDfromKM 0.1.10 (CRAN) 的 preprocess.R 与 getIPD.R，
-逐行对应其数值细节（包括 nhat 初值 n.risk[1]+1、R 的 round 半舍入、
-删失时间在区间内均匀分布等），以便与 R 版结果直接对拍。
-
-输入：
-  times/survs : 数字化阶梯顶点（t 从 0 开始，s 为 0-1）
-  trisk/nrisk : 风险表（报告时间点、对应风险数）；或 totalpts（初始人数）
-输出：
-  preprocess → dict(dat, lower, upper, t_risk, n_risk, endpts)   （下标已转 0 基）
-  getIPD     → dict(IPD=[(time,status)], nhat, cen, d, KMhat, estsurv, rmse...)
-"""
 import numpy as np
 
 

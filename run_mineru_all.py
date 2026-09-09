@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""批量 MinerU 处理驱动：按试验分目录输出，跳过已完成，记录失败清单。"""
+"""Batch MinerU parsing driver: resumable, per-trial output directories."""
+
 import os, sys, subprocess, time, json
 
 ROOT = os.environ.get("IPDR_ROOT", r"D:\work\IPDR")

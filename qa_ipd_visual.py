@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-qa_ipd_visual — 肉眼质检包：Python重建 vs R重建 vs 原图，三方可视化对比。
+"""Visual QA package generator for selected curves."""
 
-每条曲线一张组合图：
-  左：三条KM阶梯（原图数字化=蓝实线、Python重建=红虚线、R重建=绿点线），
-      标注三方中位数与 Py/R 曲线最大差
-  右：发表图裁剪（原PDF渲染），供对照原图
-"""
 import os
 import sys
 import json

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-kmfig.render — 把 PDF 页面统一加载为：高 DPI 光栅 + 文字（含颜色/方向）+ 矢量路径，
-全部换算到同一套“光栅像素坐标”，后续模块只在这一套坐标下工作。
-对于纯图片输入（jpg/png，如 docx/pptx 里的图或 MinerU 裁出的图）则只有光栅。
-"""
+"""PDF/image rendering: unified pixel-space page data (raster + text layer + vector paths + OCR)."""
+
 import numpy as np
 import cv2
 import fitz  # PyMuPDF

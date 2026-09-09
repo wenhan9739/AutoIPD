@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""redraw_plots — 用 R cox 值重绘 重建曲线 vs 原曲线 对比图。"""
+"""Reconstruction-vs-original overlay plot regeneration with R Cox values."""
+
 import os
 import sys
 import glob

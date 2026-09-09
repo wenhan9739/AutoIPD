@@ -1,160 +1,154 @@
-# IPDR-KM2IPD：从已发表RCT的PDF重建个体患者数据（IPD）
+# AtuoIPDR (formerly IPDR-KM2IPD): End-to-End Reconstruction of Individual Patient Data from Published Oncology Trials
 
-**版本 v1.0**
+**Version 1.1**
 
-从已发表随机对照试验（RCT）的 PDF 文献出发，端到端地完成：
-**文献解析 → KM 曲线发现 → 数字化提取 → IPD 重建（Guyot 算法）→ 质检**，
-并输出带人群/干预标注的个体患者数据与三方一致性验证报告。
+An open-source pipeline that takes published randomized controlled trial (RCT) documents (PDF, docx, pptx) as input and produces quality-controlled, reconstructed individual patient data (IPD) from published Kaplan–Meier (KM) survival curves — with per-arm population and intervention annotations.
 
-> 适用场景：meta 分析 / IPD 荟萃中，仅能获得发表 KM 曲线而无法获得原始数据时，
-> 批量重建各试验各臂的伪 IPD 并进行生存分析。
+> Use case: meta-analyses and IPD analyses where only published KM curves are available, enabling automated reconstruction of pseudo-IPD for survival analysis.
 
-## 方法总览（五级流水线）
+## Pipeline Overview (5 Stages)
 
 ```
-RCT 文献 PDF / docx / pptx
-   │  ① MinerU 批量解析（版面分析 + chart检测 + 文本/图片提取）
+Published RCT documents (PDF / docx / pptx)
+   │  Stage 1: MinerU batch parsing (layout + chart detection + text/figure extraction)
    ▼
-② 候选页筛选（caption/关键词/矢量密集页） → 候选页清单 manifest
+Stage 2: Candidate-page selection (caption/keyword/vector-density matching) → manifest.json
    ▼
-③ KM 曲线数字化引擎
-   │    面板检测（L形坐标轴配对 + 容器剔除）
-   │    坐标标定（矢量文字层刻度 / 刻度线定位+小窗OCR，RANSAC稳健拟合）
-   │    曲线提取（矢量描边路径优先；位图色相聚类+逐列跟踪；黑白图/点线兜底）
-   │    KM先验修复（起点(0,1)、单调性、删失标记断口拼合、伪臂去重）
+Stage 3: KM curve digitization engine
+   │    Panel detection (L-shaped axis pairing + container removal)
+   │    Axis calibration (vector text-layer ticks / geometric tick-marks + OCR, RANSAC fitting)
+   │    Curve extraction (vector stroke paths / raster hue clustering + column tracking)
+   │    KM prior enforcement (start at (0,1), monotone non-increasing, censor-mark repair)
    ▼
-④ IPD 重建（Guyot 2012 算法，双实现互相验证）
-   │    Python 移植版（kmfig/guyot.py，逐行对齐 IPDfromKM）
-   │    R 版（IPDfromKM::preprocess + getIPD，同输入对拍）
+Stage 4: IPD reconstruction — Guyot (2012) algorithm, dual implementation
+   │    Python port (kmfig/guyot.py, line-faithful to IPDfromKM)
+   │    R reference (IPDfromKM::preprocess + getIPD, same inputs)
    ▼
-⑤ 质检（四层）
-      数据完整性 / 轨迹贴合度(precision) / 重建KM vs 原曲线 / 与文中报告值比对
-      + 人群/干预标注总表 + 逐面板三方叠加核验图
+Stage 5: Quality control (4 layers)
+        Data integrity / trace precision / three-way curve comparison / published-value closure
+        + population/intervention master table + per-panel visual QA images
 ```
 
-## 验证结果（27 篇 RCT、477 条曲线实测）
+## Validation Results (27 RCTs, 477 curves)
 
-- 曲线数字化：轨迹贴合 precision 中位数 1.000；与文中报告中位数比对，105/156 条相对差 ≤5%
-- IPD 重建：78 面板 / 180 臂；**Python 与 R 同输入对拍 141/180 逐行一致**，
-  其余仅删失时间放置微差（两实现重建 KM 曲线间 RMSE ≤0.007）
-- 重建 KM vs 原数字化曲线：RMSE 中位 0.0092（0.92 个百分点）
-- 重建中位 vs 数字化中位：差值中位数 0.000 个月
-- 重建 IPD 的 Cox HR 与图中发表 HR 一致（例：KEYNOTE-189 PFS 2.036 ∈ 发表逆向 CI；AK105-302 2.344 vs 逆向 2.33）
+| Metric | Value |
+|---|---|
+| Trials covered | 27 / 27 |
+| Digitized curves | 477 (233 vector + 244 raster) |
+| Trace precision (median) | 1.000 (427/474 arms ≥ 0.9) |
+| Reconstructed panels | 78 |
+| Reconstructed arms | 180 (91 OS + 64 PFS + 25 other) |
+| Py vs R IPD row-identical | 141/180 (78.3%) |
+| Reconstructed KM vs original RMSE | median 0.0092, max 0.0495 |
+| Reconstructed median vs digitized median | median absolute difference 0.000 months |
+| Cox HR concordance (2 trials) | KEYNOTE-189 PFS: 2.04 [1.71–2.43] ∈ published CI; AK105-302: 2.34 ≈ 2.33 |
 
-## 目录结构
+## Pipeline Stages in Detail
 
-```
-pipeline/
-├── run_mineru_all.py        # ① MinerU 批量解析（断点续跑）
-├── select_figures.py        # ② OS/PFS 候选页筛选 → work/manifest.json
-├── kmfig/                   # ③④ 数字化+重建引擎
-│   ├── render.py            #    PDF/图片统一渲染（文字层+矢量路径+光栅）
-│   ├── panels.py            #    面板检测（L形坐标轴）
-│   ├── calibrate.py         #    坐标轴标定（矢量/OCR 双路径）
-│   ├── vector_extract.py    #    矢量曲线提取
-│   ├── raster_extract.py    #    位图曲线提取（跟踪法）
-│   ├── digitize.py          #    面板编排 + QA
-│   └── guyot.py             #    Guyot IPD 重建（Python 移植版）
-├── digitize_all.py          # ③④ 批量数字化驱动
-├── ipd_reconstruct.py       # ④ 批量 IPD 重建（Python Guyot）
-├── ipdfromkm_batch.R        # ④ R IPDfromKM 批量重建 + coxph
-├── compare_ipd.py           # ⑤ Py/R/原曲线 三方对比
-├── verify_all.py            # ⑤ 定量贴合核验（precision/完整性）
-├── qa_ipd_panels.py         # ⑤ 逐面板三方叠加质检图
-├── build_master.py          # ⑤ 人群/干预/角色 标注总表
-├── trial_arms.json          #    27 试验 curated 干预/人群对照表
-├── annotate_panels.py       #    人群(图注/字母映射)+干预+OCR风险表补齐
-├── validate.py              #    与文中报告中位数比对
-├── update_published_medians.py  # 发表中位双源抽取（图内标注+md）
-└── redraw_plots.py          #    重建 vs 原曲线 叠加图重绘
-```
+### Stage 1–2: Document parsing and candidate-page selection
 
-## 运行
+MinerU (v3.2, pipeline backend, GPU) parses all documents into per-page layout trees with text, chart/image detection, and cropped figures. Candidate pages are shortlisted by three signals: chart-type blocks from MinerU's chart detector, caption or page text matching a curated keyword set (Kaplan–Meier, OS, PFS, EFS, DFS, DOR), and pages without a text layer but with dense vector graphics, which catches born-digital figures that layout models miss.
+
+### Stage 3: Curve digitization engine
+
+**Panel detection** (`kmfig/panels.py`): Dark low-saturation pixel masks (excluding colored curves and light gridlines) are processed with morphological opening to find long horizontal/vertical line segments. L-shaped axis systems are paired by junction matching. Container frames (enclosing smaller panels) are discarded.
+
+**Axis calibration** (`kmfig/calibrate.py`, dual route):
+- Vector PDFs: tick-label positions read directly from the text layer (sub-pixel accuracy)
+- Raster/scanned: geometric tick-mark detection + adaptive-window OCR (RapidOCR), with projection-segmentation fallback
+- Robust fitting: RANSAC initialization + iterative outlier rejection (OCR misreads don't corrupt calibration)
+- Equidistance checking with monotone-consistency fallback (handles fraction axes with partial label coverage)
+- Both percentage (0–100) and fraction (0–1) axes auto-detected
+
+**Curve extraction** (three tiers):
+1. Vector mode: color-grouped stroke paths → endpoint-hash chaining (successor-preferring at junctions to avoid censor-mark truncation) → fragment merging with endpoint-distance + KM-monotonicity constraints → spur/terminal-tick trimming → border-frame exclusion
+2. Raster mode: HSV saturated pixels (s_min=0.45 to exclude pale CI bands, fallback to 0.30) → hue local-maxima clustering → connected-component union (text-like blobs removed) → column-wise tracking (nearest-to-previous, strict no-upward rule) → censor-mark back-fill → truncation at last genuine pixel → monotonicity enforcement
+3. Special fallbacks: near-black monochrome arms (character-like blob filter + tracking), pale dotted arms (reduced saturation + per-dot component threading)
+
+**KM priors enforced throughout**: curves must start at (0, 1), be monotonically non-increasing, terminate at the last genuine pixel; duplicate arms (traces coinciding within 3× line width for >90% of columns) are deduplicated.
+
+### Stage 4: IPD reconstruction (Guyot algorithm, dual implementation)
+
+The Python implementation (`kmfig/guyot.py`) is a line-faithful port of IPDfromKM 0.1.10, reproducing its initialization, R-style division semantics, half-even rounding of event counts, and uniform within-interval placement of censored observations. The R implementation calls IPDfromKM's `preprocess()` and `getIPD()` directly on the same inputs. Both are cross-validated: 141/180 arms produce row-identical IPD tables; the remaining 39 differ only in individual censor-time placement (KM-curve RMSE ≤ 0.007 between implementations).
+
+### Stage 5: Quality control
+
+Four automated layers, with per-panel visual-QA images for human review:
+
+1. **Data integrity**: output CSVs are compared row-by-row with the reconstruction JSON; times must be monotone, survival in [0,1], and the first vertex must equal (0, 1)
+2. **Trace precision**: fraction of sampled trace points within 2.5 px of a genuine curve pixel
+3. **Three-way comparison**: reconstructed KM curves from both implementations are overlaid on the original digitized curves, with per-panel RMSE, median differences, and milestone survival agreement
+4. **Closure against the source publication**: medians and HRs printed in the figure or reported in the text are matched to each arm and compared with the digitized/reconstructed values
+
+Per-arm population and intervention annotations are assigned through: (a) same-color text matching (NEJM/JCO style), (b) figure annotation matched by median proximity (Lancet style), (c) legend swatch + black-text OCR (raster figures), backed by a curated 27-trial treatment map.
+
+## Usage
 
 ```bash
 pip install -r requirements.txt
-# R 侧需安装 IPDfromKM: install.packages("IPDfromKM")
+# R side: install.packages(c("IPDfromKM", "survival", "jsonlite"))
 
-export IPDR_ROOT=/path/to/workdir        # 数据与结果的根目录
-mkdir -p $IPDR_ROOT/最终所纳入27个RCT     # 按试验名分文件夹放置 PDF
+export IPDR_ROOT=/path/to/workdir
+mkdir -p $IPDR_ROOT/trials    # organize PDFs by trial name
 
 cd pipeline
-python run_mineru_all.py                 # ① 批量 MinerU（可断点续跑）
-python select_figures.py                 # ② 候选页清单
-python digitize_all.py                   # ③ 全量数字化（QA 打分）
-python ipd_reconstruct.py                # ④ Python Guyot 批量重建
-Rscript ipdfromkm_batch.R \              # ④ R IPDfromKM（同输入）
+python run_mineru_all.py       # Stage 1: batch MinerU (resumable)
+python select_figures.py       # Stage 2: candidate-page manifest
+python digitize_all.py         # Stage 3: full digitization + QA
+python annotate_panels.py      # Stage 3b: population/intervention annotation + OCR risk tables
+python ipd_reconstruct.py      # Stage 4: Python Guyot batch reconstruction
+Rscript ipdfromkm_batch.R \    # Stage 4: R IPDfromKM (same inputs)
     "$IPDR_ROOT/results/ipd/r_input" "$IPDR_ROOT/results/ipd/r_out"
-python compare_ipd.py                    # ⑤ 三方对比报告
-python verify_all.py                     # ⑤ 定量贴合核验
-python qa_ipd_panels.py                  # ⑤ 逐面板肉眼质检图
-python build_master.py                   # ⑤ 人群/干预标注总表 curves_master.csv
+python compare_ipd.py          # Stage 5: three-way comparison
+python verify_all.py           # Stage 5: quantitative verification
+python qa_ipd_panels.py        # Stage 5: per-panel visual QA images
+python build_master.py         # Stage 5: population/intervention master table
 ```
 
-环境变量 `IPDR_ROOT` 为工作根目录（含文献 PDF、mineru_out/、work/、results/）。
+Set `IPDR_ROOT` to your working directory (contains trial PDFs, mineru_out/, work/, results/).
 
-## 输出结构
+## Output Structure
 
 ```
 $IPDR_ROOT/
-├── mineru_out/<试验>/<文档>/     # MinerU 解析结果
-├── work/verify/                  # 逐臂轨迹核验图（红=原曲线未覆盖 绿=轨迹偏离 黄=重合）
+├── mineru_out/<trial>/<doc>/     # MinerU parsing results
+├── work/verify/                  # Per-arm trace verification images
 ├── results/
-│   ├── curves_master.csv         # ★ 总表：试验/人群/干预/角色/中位/QA（每臂一行）
-│   ├── QA_report.md              # 质检报告（需人工复核清单）
-│   ├── verification.csv          # 定量核验（precision/完整性/视觉结论）
-│   ├── overlays/                 # 数字化 vs 发表图 叠加核验图
+│   ├── curves_master.csv         # ★ Master table: trial/population/intervention/role/median/QA
+│   ├── QA_report.md              # QC report (flagged items for human review)
+│   ├── verification.csv          # Per-arm quantitative verification
+│   ├── overlays/                 # Digitized vs published overlay images
 │   └── ipd/
-│       ├── <面板>__<臂>.ipd.csv  # ★ 重建伪IPD（time, event）
-│       ├── plots/                # 重建KM vs 原曲线 叠加图
-│       ├── key_values.csv        # 里程碑生存率/中位/风险数误差
-│       ├── compare_report.csv    # Py/R/原曲线 三方对比
-│       └── r_out/                # R IPDfromKM 结果 + coxph HR
+│       ├── <panel>__<arm>.ipd.csv  # ★ Reconstructed pseudo-IPD (time, event)
+│       ├── plots/                  # Reconstructed KM vs original overlay
+│       ├── key_values.csv          # Milestone survival / medians / risk-table errors
+│       ├── compare_report.csv      # Py/R/original three-way comparison
+│       └── r_out/                  # R IPDfromKM results + Cox HR
 ```
 
-`curves_master.csv` 关键列：**人群**（试验级人群+面板亚组）、**干预**（标准化药名+联合方案）、
-**角色**（experimental/control）、中位_重建/中位_数字化、重建vs原曲线RMSE、QA通过、
-重建IPD/数字化CSV/面板JSON 路径——可直接按"人群+干预+角色"筛选后读入 R `coxph` 或 Shiny 应用。
+## Key Output: curves_master.csv
 
-## 质检流程（四层）
+One row per arm with: trial, source document, page, panel, endpoint (OS/PFS/DOR), population, intervention (standardized regimen), role (experimental/control), reconstruction mode, median survival, published-median match, milestone survival rates (S6–S60), trace precision, risk-table error, QA flags, and file paths to the IPD CSV and QA image.
 
-1. **数据完整性**：CSV 与 JSON 逐行一致、时间单调、surv∈[0,1]、起点=(0,1)
-2. **轨迹贴合**：沿提取轨迹每 3px 采样到最近"原曲线像素"距离 ≤2.5px 的比例（precision）
-3. **三方曲线对比**：原数字化 vs Python重建KM vs R重建KM 叠加图 + RMSE/中位差
-4. **与发表值闭环**：图中标注的中位/HR 与数字化中位、重建 Cox HR 比对
+## Known Limitations
 
-逐面板三方质检图（肉眼复核用）由 `qa_ipd_panels.py` 生成，
-每图含：原图数字化曲线、Py/R 重建曲线、发表图裁剪、人群/干预标注。
+- Vector PDFs use exact path extraction (precision ≈ 0.05 months); raster/scanned figures use 300-dpi rendering (precision limited by source resolution)
+- Long overlapping stretches between arms introduce ~half a line-width of bias (< 1% survival); flagged by the overlap metric
+- KM figures printed as two solid black lines without color or line-style differences cannot be separated automatically
+- Tail plateaus with few remaining patients can shift medians by > 0.5 months due to Guyot integer rounding (7/172 arms observed)
+- Heavily overlapping multi-arm supplementary figures may have tracking artifacts; flagged by QA and listed for human review
 
-## 已知边界
+## AI-Assisted Development Disclosure
 
-- 矢量 PDF 走矢量提取（精度≈0.05 月）；位图/扫描件走光栅跟踪（精度受分辨率限制）
-- 双臂曲线长距离重叠段约有半个线宽（<1% 生存率）的偏差（QA 的 overlap 列给出提示）
-- 纯黑双实线（无颜色/线型区分）的 KM 图无法自动分臂
-- 随访末期小平台 + 少量患者的臂，Guyot 整数舍入可使中位偏移 >0.5 月（7/156 实测）
-- 无风险表数字的臂无法做 Guyot 重建（本流水线已含 OCR 风险表补齐，覆盖率 231/237 面板）
+The pipeline (~6,000 lines of Python and R across 25 scripts) was developed through human-AI collaboration using the GLM-5.3-Flash model within the ZCode harness. The development session spanned approximately 24 calendar hours, comprising 28 user turns and 1,310 model requests. Total token consumption was 446,549,976 (445.4M input, of which 97.5% served from cache; 1.15M output), with 12.7 hours of cumulative model processing time. At official list prices (US$0.15 per million fresh-input tokens, US$0.026 per million cache-read tokens, US$0.50 per million output tokens), the total development cost was approximately US$13.52. Four parallel visual-verification sub-agents consumed an additional 6.3M tokens (≈ US$0.36).
 
-## 引用与依赖
+## References
 
-- Guyot P, Ades AE, Ouwens MJ, Welton NJ. Enhanced secondary analysis of survival data:
-  reconstructing the data from published Kaplan-Meier survival curves.
-  BMC Med Res Methodol. 2012;12:9.
-- IPDfromKM R 包（算法参考实现，CRAN: IPDfromKM）
-- MinerU（PDF 解析）：https://github.com/opendatalab/MinerU
-- RapidOCR（刻度/风险表 OCR）
-- 本项目代码基于上述公开算法与工具实现，IPD 重建结果经 R IPDfromKM 对拍验证。
+- Guyot P, Ades AE, Ouwens MJ, Welton NJ. Enhanced secondary analysis of survival data: reconstructing the data from published Kaplan-Meier survival curves. BMC Med Res Methodol. 2012;12:9.
+- IPDfromKM R package (CRAN: IPDfromKM) — algorithm reference implementation.
+- MinerU: https://github.com/opendatalab/MinerU
+- RapidOCR: https://github.com/RapidAI/RapidOCR
 
 ## License
 
-GPL-3.0（见 LICENSE）。本流水线依赖并参考了 IPDfromKM（R）与 MinerU 等开源组件。
-
-## 开发成本（AI-assisted engineering）
-
-本流水线的全部代码（25个脚本、约6000行）由 GLM-5.3-Flash 模型在 ZCode harness 中
-以人机协作方式生成与调试（人类负责需求、验收与肉眼质检），历时约24个自然小时：
-1,310 次模型请求、28 个用户轮次；累计消耗 446,549,976 tokens
-（输入 445.4M，其中 434.4M 由缓存命中服务；输出 1.15M），模型处理时间合计 12.7 小时。
-按 GLM-5.3-Flash 官方目录价换算
-（输入 $0.15/M、缓存命中 $0.026/M、输出 $0.50/M），
-总成本约 **$13.52**（新鲜输入 $1.65 + 缓存读取 $11.29 + 输出 $0.58）；
-另有 4 个并行视觉验收 sub-agent（约 6.3M tokens，≈$0.36）。
+GPL-3.0 (see LICENSE file)

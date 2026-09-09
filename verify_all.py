@@ -1,15 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-verify_all — 全量复核数字化结果与原曲线的一致性。
+"""Quantitative verification: trace precision, data integrity, CSV consistency."""
 
-对每个面板每条臂：
-  1. 数据完整性：CSV 与 JSON 一致、时间单调、surv∈[0,1]、起点为原点、阶梯配对
-  2. 贴合度（precision）：提取轨迹走廊落在原曲线像素上的比例（轨迹是否跑偏）
-  3. 覆盖度（recall）：原曲线像素被轨迹走廊覆盖的比例（是否漏段）
-     recall 只在该色相“与轨迹相交的大跨度连通域”上计算（排除图例/风险表同色像素）
-  4. 生成面板级裁剪叠加图（work/verify/），供视觉复核
-输出：results/verification.csv + 控制台汇总
-"""
 import os
 import sys
 import json

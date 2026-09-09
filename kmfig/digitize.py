@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-kmfig.digitize — 单页/单图的数字化编排：
-  面板检测 → 轴标定（矢量优先，OCR 兜底）→ 曲线提取（矢量优先，光栅兜底）
-  → 阶梯函数重建 → 端点分类（OS/PFS）→ 臂标签 → QA 指标 → 风险表。
-"""
+"""Panel orchestration: calibration, extraction, step reconstruction, endpoint classification, QC."""
+
+import os
 import re
 import numpy as np
 import cv2
@@ -411,56 +409,70 @@ def digitize_panel(page, panel, min_curve_len_frac=0.5):
                 by_color[k] = a
         arms = list(by_color.values())
         res["mode"] = "vector" if arms else None
-    # ---- 光栅兜底 ----
+    # ---- 光栅兜底（v2：组件线程 + 风险表一致性评分） ----
     if not arms:
         origin = (x_at_0, y_at_top)
+        _dbg = os.environ.get("IPDR_DEBUG")
+        # 风险表 → 像素坐标的 (x, 隐含S = n_k / n_0)：矢量页用文字层，位图页用 OCR
+        risk_px_rows = []
+        if page.has_vector:
+            rr_all = extract_risk_table(page, panel, xcal, [])
+        else:
+            rr_all = []
+        if len(rr_all) < 1:
+            from .calibrate import ocr_risk_rows
+            rr_all = ocr_risk_rows(page, panel, xcal)
+        for rr in rr_all:
+            times = rr.get("times") or []; counts = rr.get("counts") or []
+            if len(times) != len(counts) or not counts:
+                continue
+            denom = max(counts) or 1
+            pairs = [(xcal.pixel(t), ycal.pixel(n / denom * (100.0 if ycal.unit == 'percent' else 1.0)))
+                     for t, n in zip(times, counts) if n > 0]
+            if len(pairs) >= 2:
+                risk_px_rows.append(pairs)
+
+        def _validate_and_append(cand_arms, pass_name):
+            tmax = max(xcal.values)
+            added = 0
+            for a in cand_arms:
+                st = points_to_step(a["points"], xcal, ycal)
+                if st is None:
+                    continue
+                # KM 先验：光栅臂必须从 (0, 1) 出发（起点异常的是删失标记等碎片）
+                if st["t0"] > 0.05 * tmax + 1e-9 or st["S0"] < 0.85:
+                    continue
+                arms.append(dict(color=a["color"], mode="raster", steps=st["steps"], t0=st["t0"], S0=st["S0"],
+                                 monotone_violation=st["monotone_violation"], censor_times=[], n_censors=None,
+                                 x_span_frac=a["x_span_frac"], n_dashed_segs=0, start_ok=None,
+                                 overlap_frac=a.get("overlap_frac"), coverage=round(a.get("coverage", 1.0), 3),
+                                 at_risk_err=a.get("at_risk_err"),
+                                 extraction_pass=a.get("extraction_pass", pass_name)))
+                added += 1
+            return added
+
         r_arms = []
         for s_min in (0.45, 0.30):   # 先排除浅色 CI 带；不行再放宽
-            r_arms = raster_extract.extract_curves_raster(page.img, panel, s_min=s_min, origin_px=origin)
+            r_arms = raster_extract.extract_curves_raster(
+                page.img, panel, s_min=s_min, origin_px=origin, risk_px_rows=risk_px_rows)
+            if _dbg:
+                print(f"    [dbg] s_min={s_min}: {len(r_arms)} arms")
             if len(r_arms) >= 2:
                 break
-        # 残余色相再提取：排除已提取臂的色相后重新聚类（被大色相峰压制的细曲线）
+        # 点线兜底：更低饱和度 + 逐点组件放行（点状线由接缝拼接成线程）
         if len(r_arms) < 2:
-            ex = []
-            for a in r_arms:
-                c = a["color"]
-                bgr = cv2.cvtColor(np.uint8([[[c[2] * 255, c[1] * 255, c[0] * 255]]]), cv2.COLOR_BGR2HSV)
-                ex.append(int(bgr[0, 0, 0]))
-            extra = raster_extract.extract_curves_raster(
-                page.img, panel, s_min=0.30, origin_px=origin,
-                apply_decorations=False, exclude_hues=ex)
-            for a in extra:
-                a["extraction_pass"] = "residual"
-            r_arms = r_arms + extra
-        # 点线（dotted）兜底：更宽连通域桥接 + 更低饱和度
-        if len(r_arms) < 2:
-            ex = []
-            for a in r_arms:
-                c = a["color"]
-                bgr = cv2.cvtColor(np.uint8([[[c[2] * 255, c[1] * 255, c[0] * 255]]]), cv2.COLOR_BGR2HSV)
-                ex.append(int(bgr[0, 0, 0]))
             dot = raster_extract.extract_curves_raster(
-                page.img, panel, s_min=0.15, origin_px=origin, dilate=4,
-                min_w_frac=0.006, min_h_frac=0.006, apply_decorations=False, exclude_hues=ex)
+                page.img, panel, s_min=0.10, v_min=0.10, origin_px=origin, dh_tol=12,
+                min_w_frac=0.0015, min_h_frac=0.0015, risk_px_rows=risk_px_rows)
             for a in dot:
-                a.setdefault("extraction_pass", "dotted")
-            # 单色（近黑）臂兜底
-            if len(dot) + len(r_arms) < 2:
-                dot += raster_extract.extract_monochrome_arm(page.img, panel, origin_px=origin)
-            r_arms = r_arms + dot
-        for a in r_arms:
-            st = points_to_step(a["points"], xcal, ycal)
-            if st is None:
-                continue
-            tmax = max(xcal.values)
-            # KM 先验：光栅臂必须从 (0, 1) 出发（起点异常的是删失标记等碎片）
-            if st["t0"] > 0.05 * tmax + 1e-9 or st["S0"] < 0.85:
-                continue
-            arms.append(dict(color=a["color"], mode="raster", steps=st["steps"], t0=st["t0"], S0=st["S0"],
-                             monotone_violation=st["monotone_violation"], censor_times=[], n_censors=None,
-                             x_span_frac=a["x_span_frac"], n_dashed_segs=0, start_ok=None,
-                             overlap_frac=a.get("overlap_frac"), coverage=round(a.get("coverage", 1.0), 3),
-                             extraction_pass=a.get("extraction_pass", "main")))
+                a["extraction_pass"] = "dotted"
+            r_arms += dot
+        # 黑白图兜底：近黑实线臂
+        if len(r_arms) < 2:
+            for a in raster_extract.extract_monochrome_arm(page.img, panel, origin_px=origin):
+                a["extraction_pass"] = "mono"
+                r_arms.append(a)
+        _validate_and_append(r_arms, "main")
         px_tol_dd = abs(ycal.fit["a"]) / (100.0 if ycal.unit == "percent" else 1.0)
         arms = drop_band_edge_arms(arms, xcal, ycal, px_tol_dd)
         res["mode"] = "raster" if arms else "none"

@@ -1,15 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-digitize_all — 按 manifest 批量数字化：每个候选页 → 面板 → 臂 → CSV 坐标，
-并生成 QA 汇总表、叠加可视化图（供人工抽查）。
+"""Batch digitization driver: manifest -> per-panel curves + QA + overlays."""
 
-输出：
-  results/<trial>/<stem>__p<page>__panel<i>__arm<k>.csv   曲线阶梯顶点（数据坐标 + 相对原点像素）
-  results/<trial>/<stem>__p<page>__panel<i>.json          面板全部信息（标定、臂、风险表、QA）
-  results/overlays/<trial>/<...>.png                       叠加图（绿框=绘图区，彩线=提取曲线）
-  results/curves_summary.csv                               每臂一行的汇总（含与文中中位数的比对）
-  results/QA_report.md
-"""
 import os
 import sys
 import json

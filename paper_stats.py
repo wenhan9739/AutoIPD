@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""paper_stats.py — 汇总论文所需的全部统计量（打印 + 存JSON）"""
+"""Aggregate statistics for the manuscript."""
+
 import os, json
 import numpy as np
 import pandas as pd

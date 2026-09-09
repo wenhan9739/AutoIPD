@@ -11,3 +11,8 @@ __pycache__/
 .env
 mineru_batch_state.json
 digitize_log.txt
+nul
+_patch*.py
+__pycache__/
+*.pyc
+kmfig/raster_extract_v1_backup.py

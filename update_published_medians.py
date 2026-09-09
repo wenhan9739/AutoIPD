@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-update_published_medians — 修正 12 条质检曲线的"发表中位"（双源）。
+"""Dual-source published-median extraction (figure annotation + markdown)."""
 
-源A(主)：发表图自身的标注（矢量文字层）——臂名表头与中位数值按列几何对齐，臂绑定最可靠。
-源B(辅)：MinerU markdown 中 "median ... X months" 句子（按臂关键词+端点匹配）。
-输出：更新 肉眼质检_IPD重建/README.md 与 发表中位_双源.csv
-"""
 import os
 import re
 import sys

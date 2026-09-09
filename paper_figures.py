@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""paper_figures.py — 生成论文全部图表（300 dpi, arXiv 单栏风格）"""
+"""Publication-quality figure generation (300 dpi, serif fonts)."""
+
 import os, json
 import numpy as np
 import pandas as pd

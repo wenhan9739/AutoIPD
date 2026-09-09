@@ -1,14 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-qa_ipd_panels — 全部重建面板的三方肉眼质检图。
+"""Per-panel visual QA: original vs Py vs R three-way overlay images."""
 
-每面板一张组合图：
-  左：原数字化曲线(蓝实线粗) vs Python重建KM(红虚线) vs R重建KM(绿点线)
-      黄框标注每臂三方中位数
-  右：发表图裁剪（原PDF/图片渲染）
-  底：人群 + 干预(角色) 标注
-输出：肉眼质检_IPD重建全部/<trial>__<panel>.png + README.md + 汇总CSV
-"""
 import os
 import sys
 import json

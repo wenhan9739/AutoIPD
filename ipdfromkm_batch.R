@@ -1,3 +1,4 @@
+"""IPDfromKM batch reconstruction v2: single-read design + coxph for two-arm panels."""
 # IPDfromKM 批量重建 v2：一次性读入全部输入（避免沙箱文件视图翻转），内存中逐臂处理
 # 用法: Rscript ipdfromkm_batch.R <r_input_dir> <out_dir>
 suppressMessages(library(IPDfromKM))
