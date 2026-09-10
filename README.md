@@ -1,4 +1,4 @@
-# AtuoIPDR (formerly IPDR-KM2IPD): End-to-End Reconstruction of Individual Patient Data from Published Oncology Trials
+# AutoIPD (formerly IPDR-KM2IPD): End-to-End Reconstruction of Individual Patient Data from Published Oncology Trials
 
 **Version 1.1**
 
