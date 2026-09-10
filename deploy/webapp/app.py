@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AtuoIPDR Web Service — Upload PDF, get reconstructed IPD + comparison plots.
+AutoIPD Web Service — Upload PDF, get reconstructed IPD + comparison plots.
 Flask app with background processing via threading.
 """
 import os
