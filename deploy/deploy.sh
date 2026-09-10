@@ -1,14 +1,14 @@
 #!/bin/bash
-# AtuoIPDR 服务器部署脚本
+# AutoIPD 服务器部署脚本
 # 用法: bash deploy.sh（在服务器上以 root 运行）
 set -e
 
-REPO="https://github.com/wenhan9739/AtuoIPDR.git"
-APP_DIR="/opt/atuoipdr"
+REPO="https://github.com/wenhan9739/AutoIPD.git"
+APP_DIR="/opt/autoipd"
 # 密钥不要写进仓库（public！）：export MINERU_API_KEY=... 后再运行
 MINERU_KEY="${MINERU_API_KEY:?请先 export MINERU_API_KEY=你的密钥}"
 
-echo "=== AtuoIPDR 部署 ==="
+echo "=== AutoIPD 部署 ==="
 
 # 1. 停旧项目
 echo "[1/6] 停止旧项目..."
@@ -52,4 +52,4 @@ echo "[6/6] 部署完成！"
 echo ""
 echo "  访问地址: http://www.magpieagent.online"
 echo "  健康检查: http://www.magpieagent.online/health"
-echo "  日志: docker logs atuoipdr"
+echo "  日志: docker logs autoipd"
