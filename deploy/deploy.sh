@@ -3,9 +3,10 @@
 # 用法: bash deploy.sh（在服务器上以 root 运行）
 set -e
 
-REPO="https://github.com/wenhan9739/ipdr-km2ipd.git"
+REPO="https://github.com/wenhan9739/AtuoIPDR.git"
 APP_DIR="/opt/atuoipdr"
-MINERU_KEY="${MINERU_API_KEY:-sk-idUmjx30ha4fzPE7herSxKglf6DRo8Tkq9HQSVoRSpSezdQM}"
+# 密钥不要写进仓库（public！）：export MINERU_API_KEY=... 后再运行
+MINERU_KEY="${MINERU_API_KEY:?请先 export MINERU_API_KEY=你的密钥}"
 
 echo "=== AtuoIPDR 部署 ==="
 
