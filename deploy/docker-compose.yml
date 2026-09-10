@@ -1,11 +1,11 @@
 version: "3.8"
 
 services:
-  atuoipdr:
+  autoipd:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    container_name: atuoipdr
+    container_name: autoipd
     restart: unless-stopped
     ports:
       - "5000:5000"
@@ -14,7 +14,7 @@ services:
       - IPDR_ROOT=/data
       - MAX_CONTENT_LENGTH=100MB
     volumes:
-      - atuoipdr_data:/data
+      - autoipd_data:/data
     deploy:
       resources:
         limits:
@@ -27,7 +27,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: atuoipdr-nginx
+    container_name: autoipd-nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -37,7 +37,7 @@ services:
       - ./certs:/etc/letsencrypt:ro
       - ./certbot-www:/var/www/certbot:ro
     depends_on:
-      - atuoipdr
+      - autoipd
 
 volumes:
-  atuoipdr_data:
+  autoipd_data:
