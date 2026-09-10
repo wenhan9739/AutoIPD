@@ -1,4 +1,4 @@
-# AtuoIPDR — Python + R
+# AutoIPD — Python + R
 # 目标镜像 < 1.5GB，适配 4核/4GB 服务器
 # 固定 bookworm：与下方 Posit 预编译二进制仓库路径匹配
 FROM python:3.10-slim-bookworm
